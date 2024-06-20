@@ -21,7 +21,7 @@ presentation:
 
 ![learn-backend-javascript](./learn-backend-java-script-9-638.webp)
 
-With SQLAlchemy as our ORM, we built the above, except instead of a Web Server, we scripted a CLI application to interact with our ORM.
+With our custom-made ORM, we built the above, except instead of a Web Server, we scripted a CLI application to interact with our ORM.
 
 ---
 
