@@ -11,73 +11,91 @@
 	# `Migrate` from `flask_migrate`
 	# db and `Production` from `models`
 
+#Flask-SQLAlchemy...SQLAlchemy
+#Flask-Migrate...alembic
+from flask import Flask, make_response, jsonify, request
+from flask_migrate import Migrate 
+from models import db, Production, Role
 # 3. ✅ Initialize the App
     # Add `app = Flask(__name__)`
+
+
+# models.py -> flask migrate -> app.db -> connected to app
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
+
+migrate = Migrate(app, db)
+
+db.init_app(app)
     
-    # Configure the database by adding`app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'`
-    # and `app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False` 
-    
-    # Set the migrations with `migrate = Migrate(app, db)`
-    
-    # Finally, initialize the application with `db.init_app(app)`
+@app.route('/')
+def index():
+    return 'this is flask'
 
- # 4. ✅ Migrate 
-	# `cd` into the `server` folder
-	
-    # Run in Terminal
-		# export FLASK_APP=app.py
-		# export FLASK_RUN_PORT=5555
-		# flask db init
-		# flask db revision --autogenerate -m 'Create tables productions'
-		# flask db upgrade
+@app.route('/productions')
+def all_productions():
+    q = Production.query.all()
+    q_dict = []
+    for prod in q:
+        q_dict.append({
+            "id": prod.id,
+            "title": prod.title,
+            "year": prod.year,
+            "genre": prod.genre
+        })
+    return make_response(jsonify(q_dict), 200)
 
-    
-    # Review the database to verify your table has migrated correctly
+@app.route('/productions/<int:id>')
+def one_production(id):
+    q = Production.query.filter(Production.id==id).first()
+    q_dict = {
+        "id": q.id,
+        "genre": q.genre,
+        "title": q.title,
+        "year": q.year
+    }
+    return make_response(q_dict, 200)
+   
+@app.route('/alphabetical-productions')
+def ordered_prods():
+    q = Production.query.order_by('title').limit(3)
+    q_dict = [{
+        "id": prod.id,
+        "title": prod.title
+    } for prod in q]
 
-# 5. ✅ Navigate to `seed.rb`
+    return make_response(q_dict, 200)
 
-# 12. ✅ Routes
-    # Create your route
-    
-        # `@app.route('/')
-        #  def index():
-        #    return '<h1>Hello World!</h1>'`
+@app.route('/roles')
+def all_roles():
+    q = Role.query.all()
+    q_dict = [
+        {"id": r.id, "name": r.name, "movie_id": r.movie_id}
+        for r in q
+    ]
+    return make_response(q_dict, 200)
 
-# 13. ✅ Run the server with `flask run` and verify your route in the browser at `http://localhost:5000/`
-
-# 14. ✅ Create a dynamic route
-# `@app.route('/productions/<string:title>')
-#  def production(title):
-#     return f'<h1>{title}</h1>'`
-
-
-# 15.✅ Update the route to find a `production` by its `title` and send it to our browser
-    
-    # Before continuing, import `jsonify` and `make_response` from Flask at the top of the file.
-    
-    # 📚 Review With Students: status codes
-        # `make_response` will allow us to make a response object with the response body and status code
-        # `jsonify` will convert our query into JSON
-
-    # `@app.route('/productions/<string:title>')
-    # def production(title):
-    #     production = Production.query.filter(Production.title == title).first()
-    #     production_response = {
-    #         "title":production.title,
-    #         "genre":production.genre,
-    #         "director": production.director
-    #         }
-    #     response = make_response(
-    #         jsonify(production_response),
-    #         200
-    #     )`    
+@app.route('/context')
+def context():
+    print("context request")
+    return f'Path: {request.path} Host: {request.host}'
 
 # 16.✅ View the path and host with request context
 
-# 17.✅ Use the before_request request hook, what this hook does is up to you. You could hit a breakpoint, print something to server console or anything else you can think of.
+#helpful for when checking what users are logged in or what current data is before completing request
+@app.before_request
+def runs_before():
+    print("before request sent")
+# 17.✅ Use the before_request after_request hook, what this hook does is up to you. You could hit a breakpoint, print something to server console or anything else you can think of.
 
+@app.after_request
+def runs_after(response):
+    print("after submitting request")
+    #makes sure to return the response
+    return response
 # Note: If you'd like to run the application as a script instead of using `flask run`, uncomment the line below 
 # and run `python app.py`
 
-# if __name__ == '__main__':
-#     app.run(port=5000, debug=True)
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
