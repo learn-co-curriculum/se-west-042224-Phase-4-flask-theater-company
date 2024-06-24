@@ -10,7 +10,7 @@
 # `Flask` from `flask`
 # `Migrate` from `flask_migrate`
 # db and `Production` from `models`
-from flask import Flask
+from flask import Flask, jsonify, make_response, request
 from flask_migrate import Migrate
 from models import Production, db
 
@@ -22,6 +22,7 @@ app = Flask(__name__)
 # and `app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False`
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ECHO"] = True
 
 # Set the migrations with `migrate = Migrate(app, db)`
 migrate = Migrate(app, db)
@@ -51,6 +52,12 @@ db.init_app(app)
 #  def index():
 #    return '<h1>Hello World!</h1>'`
 
+
+# @app.route("/peanuts")
+# def index():
+#     return "<h1>Hello Charlie Brown!</h1>"
+
+
 # 13. ✅ Run the server with `flask run` and verify your route in the browser at `http://localhost:5000/`
 
 # 14. ✅ Create a dynamic route
@@ -59,7 +66,40 @@ db.init_app(app)
 #     return f'<h1>{title}</h1>'`
 
 
+# @app.route("/productions/<string:title>")
+# def production(title):
+#     return f"<h2>Welcome to our production of {title}</h2>"
+
+
+@app.route("/productions")
+def index():
+    productions = Production.query.all()
+    prods_dict = [
+        {
+            "title": production.title,
+            "genre": production.genre,
+            "director": production.director,
+            "budget": production.budget,
+        }
+        for production in productions
+    ]
+    return make_response(prods_dict, 200)
+
+
 # 15.✅ Update the route to find a `production` by its `title` and send it to our browser
+@app.route("/productions/<string:title>")
+def production(title):
+    production = Production.query.filter(Production.title == title).first()
+    if not production:
+        return make_response("Production not found", 404)
+    prod_dict = {
+        "title": production.title,
+        "genre": production.genre,
+        "director": production.director,
+    }
+    response = make_response(jsonify(prod_dict), 200)
+    return response
+
 
 # Before continuing, import `jsonify` and `make_response` from Flask at the top of the file.
 
@@ -80,12 +120,22 @@ db.init_app(app)
 #         200
 #     )`
 
+
 # 16.✅ View the path and host with request context
+@app.route("/context")
+def context():
+    return f"<h1>Path: {request.path} Host: {request.host}</h1>"
+
 
 # 17.✅ Use the before_request request hook, what this hook does is up to you. You could hit a breakpoint, print something to server console or anything else you can think of.
+@app.before_request
+def runs_before():
+    current_user = {"user_id": 1, "username": "Simon"}
+    print(current_user)
+
 
 # Note: If you'd like to run the application as a script instead of using `flask run`, uncomment the line below
 # and run `python app.py`
 
-# if __name__ == '__main__':
-#     app.run(port=5000, debug=True)
+if __name__ == "__main__":
+    app.run(port=5555, debug=True)
