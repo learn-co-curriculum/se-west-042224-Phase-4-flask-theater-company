@@ -26,7 +26,7 @@
 
 from flask import Flask, jsonify, make_response, request
 from flask_migrate import Migrate
-from models import CrewMember, Production, db
+from models import CastMember, Production, db
 
 # 1. ✅ Import `Api` and `Resource` from `flask_restful`
 # ❓ What do these two classes do at a higher level?

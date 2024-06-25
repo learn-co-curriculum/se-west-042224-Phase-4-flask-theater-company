@@ -20,7 +20,7 @@ class Production(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
-    cast_members = db.relationship("CrewMember", back_populates="production")
+    cast_members = db.relationship("CastMember", back_populates="production")
 
     # 7.1 ✅ Create a serialize rule that will help add our `crew_members` to the response and remove created_at and updated_at.
     # 7.2 Demo serialize_only by only allowing title to be included in the response
