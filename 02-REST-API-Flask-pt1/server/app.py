@@ -93,7 +93,9 @@ class Productions(Resource):
         #       200
         #  )
         # 4.5 Return `response`.
-        return make_response(prods_list, 200)
+        return make_response(
+            prods_list, 200
+        )  # omit jsonify b/c make_response handles implicitly
 
     # Create the POST route
     # 📚 Review With Students: request object
