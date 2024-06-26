@@ -120,6 +120,51 @@ class ProductionByID(Resource):
 api.add_resource(ProductionByID, "/productions/<int:id>")
 
 
+class CastMembers(Resource):
+    def get(self):
+        members = [
+            member.to_dict(
+                rules=(
+                    "-production.budget",
+                    "-production.ongoing",
+                    "-production.created_at",
+                    "-production.updated_at",
+                )
+            )
+            for member in CastMember.query.all()
+        ]
+        return make_response(members, 200)
+
+    def post(self):
+        # new_member = CastMember(
+        #     name=request.get_json()["name"],
+        #     role=request.get_json()["role"],
+        #     production_id=request.get_json()["production_id"],
+        # )
+        member_json = request.get_json()
+        """we can do mass assignment with a post request
+        with mass assignment, it is crucial that the keys of the request body json all match exactly with properties of the model object"""
+        # new_member = CastMember()
+        # for key, value in member_json.items():
+        #     setattr(new_member, key, value)
+        new_member = CastMember(**member_json)
+        db.session.add(new_member)
+        db.session.commit()
+        return make_response(new_member.to_dict(), 201)
+
+
+class CastMemberById(Resource):
+    def get(self, id):
+        member = db.session.get(CastMember, id)
+        if not member:
+            raise NotFound
+        return make_response(member.to_dict(), 200)
+
+
+api.add_resource(CastMembers, "/cast_members")
+api.add_resource(CastMemberById, "/cast_members/<int:id>")
+
+
 # 2.✅ use the @app.errorhandler() decorator to handle Not Found
 # 2.1 Create the decorator and pass it NotFound
 @app.errorhandler(NotFound)
