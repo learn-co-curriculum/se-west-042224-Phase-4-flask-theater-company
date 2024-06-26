@@ -1,4 +1,6 @@
-*/.venv
-*.db
-*/*/migrations
-*/*/instance
+.DS_Store
+**/.DS_Store
+**/.venv
+**.db
+**/**/migrations
+**/**/instance
