@@ -17,7 +17,7 @@ from flask_restful import Api, Resource
 from models import CastMember, Production, db
 
 # 1.✅ Import NotFound from werkzeug.exceptions for error handling
-
+from werkzeug.exceptions import NotFound
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
@@ -28,7 +28,7 @@ app.json.compact = False
 migrate = Migrate(app, db)
 db.init_app(app)
 
-
+Api.error_router = lambda self, handler, e: handler(e)
 api = Api(app)
 
 
@@ -74,35 +74,66 @@ class ProductionByID(Resource):
         production = Production.query.filter_by(id=id).first()
         # 3.✅ If a production is not found raise the NotFound exception
         # 3.1 AND/OR use abort() to create a 404 with a customized error message
+        if not production:
+            # abort(404)
+            raise NotFound
 
         production_dict = production.to_dict()
         response = make_response(production_dict, 200)
 
         return response
 
+    # 4.✅ Patch
+    # 4.1 Create a patch method that takes self and id
+    def patch(self, id):
+        # 4.2 Query the Production from the id
+        production = db.session.get(Production, id)
+        # 4.3 If the production is not found raise the NotFound exception AND/OR use abort() to create a 404 with a customized error message
+        if not production:
+            raise NotFound
+        # 4.4 Loop through the request.json object and update the productions attributes. Note: Be cautions of the data types to avoid errors.
+        form_json = request.get_json()
+        for key, value in form_json.items():
+            setattr(production, key, value)
+        # 4.5 add and commit the updated production
+        db.session.add(production)
+        db.session.commit()
+        # 4.6 Create and return the response
+        return make_response(production.to_dict(), 202)
 
-# 4.✅ Patch
-# 4.1 Create a patch method that takes self and id
-# 4.2 Query the Production from the id
-# 4.3 If the production is not found raise the NotFound exception AND/OR use abort() to create a 404 with a customized error message
-# 4.4 Loop through the request.form object and update the productions attributes. Note: Be cautions of the data types to avoid errors.
-# 4.5 add and commit the updated production
-# 4.6 Create and return the response
+    # 5.✅ Delete
+    # 5.1 Create a delete method, pass it self and the id
+    def delete(self, id):
 
-# 5.✅ Delete
-# 5.1 Create a delete method, pass it self and the id
-# 5.2 Query the Production
-# 5.3 If the production is not found raise the NotFound exception AND/OR use abort() to create a 404 with a customized error message
-# 5.4 delete the production and commit
-# 5.5 create a response with the status of 204 and return the response
+        # 5.2 Query the Production
+        production = db.session.get(Production, id)
+        # 5.3 If the production is not found raise the NotFound exception AND/OR use abort() to create a 404 with a customized error message
+        if not production:
+            raise NotFound
+        # 5.4 delete the production and commit
+        db.session.delete(production)
+        db.session.commit()
+        # 5.5 create a response with the status of 204 and return the response
+        return make_response("", 204)
 
 
 api.add_resource(ProductionByID, "/productions/<int:id>")
 
+
 # 2.✅ use the @app.errorhandler() decorator to handle Not Found
 # 2.1 Create the decorator and pass it NotFound
+@app.errorhandler(NotFound)
+def handle_not_found(e):
+    return make_response(
+        f"Not found: Sorry the {request.path.strip('/1234567890').title()} resource you are looking for doesn't exist",
+        404,
+    )
+
+
 # 2.2 Use make_response to create a response with a message and the status 404
-# 2.3 return t he response
+# 2.3 return the response
+
+app.register_error_handler(404, handle_not_found)
 
 
 # To run the file as a script
