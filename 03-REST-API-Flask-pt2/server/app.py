@@ -22,6 +22,7 @@ from models import CastMember, Production, db
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ECHO"] = True
 app.json.compact = False
 
 migrate = Migrate(app, db)
@@ -105,5 +106,5 @@ api.add_resource(ProductionByID, "/productions/<int:id>")
 
 
 # To run the file as a script
-# if __name__ == '__main__':
-#     app.run(port=5000, debug=True)
+if __name__ == "__main__":
+    app.run(port=5555, debug=True)
