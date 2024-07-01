@@ -26,7 +26,7 @@ function App() {
   useEffect(() => {
     fetch("/productions")
       .then((r) => {
-        console.dir(r)
+        // console.dir(r)
         return r.json()
       })
       .then(setProductions);
@@ -72,7 +72,7 @@ function App() {
             production_edit={production_edit}
           />
         </Route>
-        <Route path="/productions/:id">
+        <Route path="/productions/:prodId">
           <ProductionDetail
             handleEdit={handleEdit}
             deleteProduction={deleteProduction}

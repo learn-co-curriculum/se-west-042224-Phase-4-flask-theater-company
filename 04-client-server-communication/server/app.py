@@ -97,11 +97,11 @@ class ProductionByID(Resource):
         if not production:
             raise NotFound
 
-        for attr in request.form:
-            setattr(production, attr, request.form[attr])
+        for attr in request.get_json():
+            setattr(production, attr, request.get_json()[attr])
 
-        production.ongoing = bool(request.form["ongoing"])
-        production.budget = int(request.form["budget"])
+        # production.ongoing = bool(request.get_json()["ongoing"])
+        production.budget = int(request.get_json()["budget"])
 
         db.session.add(production)
         db.session.commit()
@@ -129,7 +129,8 @@ api.add_resource(ProductionByID, "/productions/<int:id>")
 @app.errorhandler(NotFound)
 def handle_not_found(e):
     response = make_response(
-        "Not Found: Sorry the resource you are looking for does not exist", 404
+        {"message": "Not Found: Sorry the resource you are looking for does not exist"},
+        404,
     )
 
     return response
