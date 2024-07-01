@@ -37,7 +37,7 @@ app.json.compact = False
 # Set up:
     # generate a secrete key `python -c 'import os; print(os.urandom(16))'`
 
-app.secret_key = 'Secret Key Here!'
+app.secret_key = b'\xd2^YF!\xa0^\xbf\xf3\x14\xaa\xceh\xbb \xe7'
 
 migrate = Migrate(app, db)
 db.init_app(app)
@@ -139,6 +139,21 @@ api.add_resource(ProductionByID, '/productions/<int:id>')
         # 1.3.4 Save the new users id to the session hash
         # 1.3.5 Make a response and send it back to the client
 
+class Users(Resource):
+    def post(self):
+        req_json = request.get_json()
+        try:
+            new_user = User(**req_json)
+        except:
+            abort(422, "Some values failed validation")
+        db.session.add(new_user)
+        db.session.commit()
+        session["user_id"] = new_user.id # gives the new_user "logged-in" status
+        return make_response(new_user.to_dict(), 201)
+    
+api.add_resource(Users, "/users", "/signup")
+        
+
 # 2.✅ Test this route in the client/src/components/Authentication.sj 
 
 # 3.✅ Create a Login route
@@ -150,6 +165,15 @@ api.add_resource(ProductionByID, '/productions/<int:id>')
         # 3.3.3 If found set the user_id to the session hash
         # 3.3.4 convert the user to_dict and send a response back to the client 
     #3.4 Toggle the signup form to login and test the login route
+
+@app.route("/login", methods=["POST"])
+def login():
+    user = User.query.filter(User.name == request.get_json().get('name')).first()
+    if not user:
+        raise NotFound
+    session["user_id"] = user.id # gives the user "logged-in" status
+    return make_response(user.to_dict(), 200)
+    
 
 
 # 4.✅ Create an AuthorizedSession class that inherits from Resource
@@ -177,6 +201,15 @@ api.add_resource(ProductionByID, '/productions/<int:id>')
         # 8.4 Set the cookies in the response with set_cookie and pass it a key 'mode' and a value 'dark'
         # 8.5 return the response, run the server and check the response in the browser.
         # Note: Now is a great time to view the cookies and talk about security concerns
+@app.route("/dark_mode")
+def dark_mode():
+    response = make_response(
+        {"cookies": [{cookie: request.cookies[cookie]} for cookie in request.cookies]}
+    )
+    response.set_cookie("password", "pa$$w0rd")
+    response.set_cookie("mode", "dark")
+    return response
+
 
 
 @app.errorhandler(NotFound)
@@ -190,4 +223,4 @@ def handle_not_found(e):
 
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    app.run(port=5555, debug=True)

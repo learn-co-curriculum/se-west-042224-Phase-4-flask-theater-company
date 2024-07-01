@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.orm import validates
 
-db = SQLAlchemy()
+db = SQLAlchemy(engine_options={"echo": True})
 
 class Production(db.Model, SerializerMixin):
     __tablename__ = 'productions'
@@ -20,7 +20,7 @@ class Production(db.Model, SerializerMixin):
     ongoing = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
-    cast_members = db.relationship('CastMember', backref='production')
+    cast_members = db.relationship('CastMember', back_populates='production')
         
     serialize_rules = ('-cast_members.production',)
 
@@ -43,6 +43,8 @@ class CastMember(db.Model, SerializerMixin):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
     production_id = db.Column(db.Integer, db.ForeignKey('productions.id'))
+
+    production = db.relationship(Production, back_populates='cast_members')
     
     serialize_rules = ('-production.cast_members',)
 
@@ -56,11 +58,11 @@ class User(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     email = db.Column(db.String)
-    admin = db.Column(db.String, default=False)
+    admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
    
 
     def __repr__(self):
-        return f'< username:{self.name}'
+        return f'<User name:{self.name} email: {self.email} >'
 

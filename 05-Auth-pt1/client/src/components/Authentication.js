@@ -9,6 +9,39 @@ function Authentication({updateUser}) {
   const [signUp, setSignUp] = useState(false)
   const history = useHistory()
 
+  const formSchema = yup.object().shape({
+    name: yup.string().required("Please enter a username"),
+    email: yup.string().email("Please enter a valid email")
+  })
+
+  const formik = useFormik({
+    initialValues: {
+      name: "",
+      email: "",
+    },
+    validationSchema: formSchema,
+    onSubmit: values => {
+      fetch(signUp ? '/signup' : '/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(values),
+      })
+      .then(res => {
+        if (res.ok) {
+          res.json()
+          .then(user => {
+            console.log("🚀 ~ Authentication ~ user:", user)
+            updateUser(user)
+            history.push('/')
+          })
+        } else {
+          updateUser(null)
+          history.push('/authentication')
+        }
+      })
+    }
+  })
+
   const handleClick = () => setSignUp((signUp) => !signUp)
   // 3.✅ Finish building the authentication form with formik
     // 3.1 create a formSchema and use yup to make some client side validations
@@ -26,17 +59,17 @@ function Authentication({updateUser}) {
         <h2>Please Log in or Sign up!</h2>
         <h2>{signUp?'Already a member?':'Not a member?'}</h2>
         <button onClick={handleClick}>{signUp?'Log In!':'Register now!'}</button>
-        <Form onSubmit={console.log}>
+        <Form onSubmit={formik.handleSubmit}>
         <label>
           Username
           </label>
-        <input type='text' name='name' value={'value'} onChange={console.log} />
+        <input type='text' name='name' value={formik.values.name} onChange={formik.handleChange} />
         {signUp&&(
           <>
           <label>
           Email
           </label>
-          <input type='text' name='email' value={'value'} onChange={console.log} />
+          <input type='text' name='email' value={formik.values.email} onChange={formik.handleChange} />
           </>
         )}
         <input type='submit' value={signUp?'Sign Up!':'Log In!'} />
