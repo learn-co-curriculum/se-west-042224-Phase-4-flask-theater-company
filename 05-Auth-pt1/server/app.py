@@ -183,6 +183,13 @@ def login():
         # 4.2.2 Use the user id to query the user with a .filter
         # 4.2.3 If the user id is in sessions and found make a response to send to the client. else raise the Unauthorized exception (Note- Unauthorized is being imported from werkzeug.exceptions)
 
+@app.route("/authorized")
+def authorized():
+    user = User.query.filter(User.id == session.get("user_id")).first()
+    if not user:
+        raise Unauthorized
+    return make_response(user.to_dict(), 200)
+
 # 5.✅ Head back to client/src/App.js to restrict access to our app!
 
 # 6.✅ Logout 
@@ -190,6 +197,11 @@ def login():
     # 6.2 Create a method called delete
     # 6.3 Clear the user id in session by setting the key to None
     # 6.4 create a 204 no content response to send back to the client
+@app.route("/logout", methods=["DELETE"])
+def logout():
+    del session['user_id']
+    return make_response("", 204)
+
 
 # 7.✅ Navigate to client/src/components/Navigation.js to build the logout button!
 
@@ -220,6 +232,10 @@ def handle_not_found(e):
     )
 
     return response
+
+@app.errorhandler(Unauthorized)
+def handle_unauthorized(e):
+    return make_response({"error": "Unauthorized: you must be logged in to make that request"}, 401)
 
 
 if __name__ == '__main__':
