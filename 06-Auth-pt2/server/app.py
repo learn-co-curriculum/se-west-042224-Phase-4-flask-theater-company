@@ -23,6 +23,15 @@ from werkzeug.exceptions import NotFound, Unauthorized
 # Continue on Step 3
 
 
+# the following add route-specific authorization
+@app.before_request
+def check_if_logged_in():
+    open_access_list = ["/signup", "/login", "/logout", "/authorized"]
+    # ipdb.set_trace()
+    if request.path not in open_access_list and not session.get("user_id"):
+        raise Unauthorized
+
+
 class Productions(Resource):
     def get(self):
         production_list = [p.to_dict() for p in Production.query.all()]
@@ -209,4 +218,4 @@ def handle_unauthorized(e):
 
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    app.run(port=5555, debug=True)
