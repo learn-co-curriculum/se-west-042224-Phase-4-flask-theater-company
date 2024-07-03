@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-import {useHistory} from 'react-router-dom'
+import {useNavigate} from 'react-router-dom'
 import styled from "styled-components";
 import { useFormik } from "formik"
 import * as yup from "yup"
@@ -8,7 +8,7 @@ import * as yup from "yup"
 function Authentication({updateUser}) {
   const [signUp, setSignUp] = useState(false)
   
-  const history = useHistory()
+  const navigate = useNavigate()
 
   const handleClick = () => setSignUp((signUp) => !signUp)
   const formSchema = yup.object().shape({
@@ -36,7 +36,7 @@ function Authentication({updateUser}) {
             res.json().then(user => {
               console.log(user)
               updateUser(user)
-              history.push('/')
+              navigate('/')
             })
           } else {
             //12✅ Handle user errors if Auth fails

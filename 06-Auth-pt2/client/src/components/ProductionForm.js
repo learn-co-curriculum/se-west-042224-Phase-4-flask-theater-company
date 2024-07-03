@@ -1,11 +1,11 @@
 import React, {useState} from 'react'
 import styled from 'styled-components'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useFormik } from "formik"
 import * as yup from "yup"
 
 function ProductionForm({addProduction}) {
-  const history = useHistory()
+  const navigate = useNavigate()
   const formSchema = yup.object().shape({
     title: yup.string().required("Must enter a title"),
     budget: yup.number().positive()
@@ -32,7 +32,7 @@ function ProductionForm({addProduction}) {
         if(res.ok) {
           res.json().then(production => {
             addProduction(production)
-            history.push(`/productions/${production.id}`)
+            navigate(`/productions/${production.id}`)
           })
         }
       })

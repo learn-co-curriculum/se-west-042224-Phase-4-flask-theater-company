@@ -1,4 +1,4 @@
-import  {useParams, useHistory } from 'react-router-dom'
+import  {useParams, useNavigate } from 'react-router-dom'
 import {useEffect, useState} from 'react'
 import styled from 'styled-components'
 
@@ -7,7 +7,7 @@ function ProductionDetail() {
   const [error, setError] = useState(null)
   
   const params = useParams()
-  const history = useHistory()
+  const navigate = useNavigate()
   useEffect(()=>{
     fetch(`/productions/${params.id}`)
     .then(res => { 
